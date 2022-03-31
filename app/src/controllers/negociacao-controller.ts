@@ -2,8 +2,10 @@ import { domInjector } from '../decorator/dom-injector.js';
 import { inspect } from '../decorator/inspect.js';
 import { logarTempoDeExecucao } from '../decorator/logar-tempo-execucao.js';
 import { DiasDaSemana } from '../enums/dias-da-semana.js';
+import { NegociacoesDoDia } from '../interfaces/negociacao-do-dia.js';
 import { Negociacao } from '../models/negociacao.js';
 import { Negociacoes } from '../models/negociacoes.js';
+import { NegociacoesService } from '../services/negociacoes-service.js';
 import { MensagemView } from '../views/mensagem-view.js';
 import { NegociacoesView } from '../views/negociacoes-view.js';
 
@@ -18,6 +20,7 @@ export class NegociacaoController {
     private negociacoes = new Negociacoes();
     private negociacoesView = new NegociacoesView('#negociacoesView');
     private mensagemView = new MensagemView('#mensagemView');
+    private negociacaoService = new NegociacoesService();
 
     constructor() {
         // -> Buscar o elemento será responsabilidade do decorator @domInjector
@@ -48,6 +51,19 @@ export class NegociacaoController {
         this.negociacoes.adiciona(negociacao);
         this.limparFormulario();
         this.atualizaView();
+    }
+
+    // buscar dados na api utilizando fetch que está disponível globalmente no navegador
+    public importaDados(): void {
+
+        this.negociacaoService.obterNegociacoesDoDia()
+        // recebe o return no then acima cujo retorno é um array de negociação
+            .then(negociacoesDeHoje => { 
+                for (let negociacao of negociacoesDeHoje) {
+                    this.negociacoes.adiciona(negociacao);
+                }
+                this.negociacoesView.update(this.negociacoes);
+            });
     }
 
     private ehDiaUtil(data: Date) {
